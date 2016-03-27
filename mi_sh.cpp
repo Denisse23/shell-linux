@@ -9,12 +9,22 @@
 #include <cstdlib>
 using namespace std;
 
-#define tok_bufsize 200
-#define directory_buf_size 200
+#define tok_bufsize 255
+#define directory_buf_size 255
 #define delim " \t\r\n\a"
 
-char directory[directory_buf_size];
-string directory_string;
+///////////////////// Funciones comandos/////////////////////////////////////////////////////////
+
+void C_cd(vector<string>);
+void C_exit(vector<string>);
+void C_mkdir(vector<string>);
+void C_cat(vector<string>);
+void C_rmdir(vector<string>);
+void C_rm(vector<string>);
+void C_rmdir_R(vector<string>);
+
+
+//////////////////////////////////////////// LINEA////////////////////////////////////////////////////////
 
 char *read_line(){
   static char line[tok_bufsize];
@@ -33,12 +43,10 @@ vector<string> split_linea(char *line){
 	return tokens;
 }
 
-vector<string> revisarlinea(vector<string> args){
-  string line = "";
-  bool charfoundb = false;
-  const char *charfound;
-  for(int i=0;i<args.size();i++){
-    line+= args[i];
+vector<string> revisarlinea( char * line,vector<string> args){
+	bool charfoundb = false;
+ 	const char *charfound;
+	for(int i=0;i<args.size();i++){
     if(args[i]=="|" || args[i]==">" || args[i]=="<"){
       charfoundb=true;
       charfound = args[i].c_str();
@@ -48,7 +56,7 @@ vector<string> revisarlinea(vector<string> args){
   if(charfoundb){
     
     char * token;
-    token = strtok (const_cast<char*>(line.c_str()), charfound);
+    token = strtok (line, charfound);
     while (token != NULL){
       tokens.push_back(token);
       token = strtok (NULL, charfound);
@@ -58,19 +66,32 @@ vector<string> revisarlinea(vector<string> args){
 
 }
 
+/////////////////////////////////////// Arreglo de argumentos para hacer llamada/////////////////////////
+
+char ** getArgs(vector<string> args){
+	char **tokens =(char**) malloc(tok_bufsize * sizeof(char*));
+	int position = 0;
+	for(int i=0; i<args.size();i++){
+		tokens[position] = (char*)args[i].c_str();
+		position++;
+	}
+	tokens[position] = NULL;
+	return tokens;
+}
+
+/////////////////////////////// LLamadas al sistema con EXECVP -- al ejecutable: comandosEje//////////////////////////
 
 void call_system(vector<string> args){
     pid_t pid, wpid;
     int status;
     pid = fork();
 
-    if (pid==0) {
-      char *argsinterno[] =  {(char *)args[0].c_str(),(char *)args[1].c_str(), (char *)0};
-      execvp((directory_string + "/comandosEje").c_str(),argsinterno);
-
+	if (pid==0) {
+      execvp("comandosEje", getArgs(args));
+      	//Child process
     } else if (pid < 0) {
       // Error forking
-      perror("Error");
+      perror("fork");
     } else {
       // Parent process
       do {
@@ -80,52 +101,34 @@ void call_system(vector<string> args){
 }
 
 
-/*
-  	//comandos ---------------------------------------------------------------------------
-  	//LOS comandos que no hacen execvp son: cd y exit
-*/
+////////////////////////////////////////////////lista de comandos///////////////////////////
 string comandos[] = {
   "cd",
   "exit",
-  "mkdir"
-};
-
-void C_cd(vector<string> args){
-	if (args.size() == 1) {
-  		fprintf(stderr, "My_sh: sin argumentos para \"cd\"\n");
-  	} else {
-    	if (chdir(args[1].c_str()) != 0) {
-      		perror("Error");
-    	}	
-  	}
- 	
-}
-
-
-void C_exit(vector<string> args)
-{
-	 exit(0);
-}
-
-void C_mkdir(vector<string> args){
-  if (args.size() == 1) {
-      fprintf(stderr, "My_sh: sin argumentos para \"mkdir\"\n");
-    } else {
-      call_system( args);
-    }
-}
-
-
-void (*comandos_funciones[]) (vector<string>) = {
- 	&C_cd,
- 	&C_exit,
-  &C_mkdir
+  "mkdir",
+  "cat",
+  "rmdir",
+  "rm",
+  "rmdir -R"
 };
 
 int size_comandos() {
  	return sizeof(comandos) / sizeof(char *);
 }
 
+///////////////////////////// lista de funciones de comandos ///////////////////////////////////
+
+void (*comandos_funciones[]) (vector<string>) = {
+ 	&C_cd,
+ 	&C_exit,
+  	&C_mkdir,
+  	&C_cat,
+  	&C_rmdir,
+  	&C_rm,
+  	&C_rmdir_R
+};
+
+/////////////////////////////////////////// Ejecutar comando ///////////////////////////////////////
 
 void ejecutar(vector<string> args)
 {
@@ -145,32 +148,43 @@ void ejecutar(vector<string> args)
   	
 } 
 
+////////////////////////////////////// Redireccionamiento o tuberias ////////////////////////////////
+
 void ejecutarTubOredic(vector<string> args)
 {
    printf("NO hay nada por aqui todavia\n");
 
 } 
 
-
-
+////////////////////////////////////////////////////////// MAIN /////////////////////////////////////////////////
 
 int main(int argc, char **argv){
-  getcwd(directory, directory_buf_size);
-  directory_string = directory;
+
+	char directory [directory_buf_size];
+	getcwd(directory, directory_buf_size);
+	string directory_string = "PATH=";
+  	string direc = directory;
+  	directory_string+=direc;
+	putenv((char *)directory_string.c_str());
+
+
 	char *line;
  	vector<string> args;
-  vector<string> argsTubOredic;
+  	vector<string> argsTubOredic;
 
   	do {
-    	printf("MI_sh>");
+  		getcwd(directory, directory_buf_size);
+  		string direct = directory;
+  		string path = "MI_sh>:~"+direct+"$ ";
+    	printf("%s",(char *)path.c_str());
     	line =read_line();
-      args = split_linea(line);
-      argsTubOredic = revisarlinea(args);
-      if(argsTubOredic.size()==0){
-          ejecutar(args);
-      }else{
-         ejecutarTubOredic(argsTubOredic);
-      }
+      	args = split_linea(line);
+      	argsTubOredic = revisarlinea(line, args);
+      	if(argsTubOredic.size()==0){
+        	ejecutar(args);
+      	}else{
+         	ejecutarTubOredic(argsTubOredic);
+     	}
     	
     	
 
@@ -179,3 +193,47 @@ int main(int argc, char **argv){
   	return 0;
 }
 
+////////////////////////////////////////////////// COMANDOS ////////////////////////////////////////////////
+
+void C_cd(vector<string> args){
+	if (args.size() == 1) {
+  		fprintf(stderr, "My_sh: sin argumentos para \"cd\"\n");
+  	} else {
+    	if (chdir(args[1].c_str()) != 0) {
+      		perror((char *)("MI_sh:cd:"+args[1]).c_str());
+    	}	
+  	}
+ 	
+}
+
+
+void C_exit(vector<string> args)
+{
+	exit(0);
+}
+
+void C_mkdir(vector<string> args){
+	call_system( args);
+ }
+
+ void C_cat(vector<string> args){
+	call_system( args);
+ }
+
+ void C_rmdir(vector<string> args){
+ 	if(args.size()==3){
+ 		args[0] = args[0]+" "+args[1];
+		args.erase(args.begin() + 1);
+		ejecutar(args);
+ 	}else{
+ 		call_system( args);
+ 	}
+	
+ }
+
+ void C_rm(vector<string> args){
+	call_system( args);
+ }
+ void C_rmdir_R(vector<string> args){
+	call_system( args);
+ }
