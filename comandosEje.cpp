@@ -12,6 +12,8 @@
 #include <dirent.h> 
 #include <fstream>
 #include <sstream> 
+#include <sys/utsname.h>
+#include <signal.h>
 using namespace std;
 
 #define delim " \t\r\n\a"
@@ -230,8 +232,8 @@ void ps( char const *argv[], int size){
     }
 
      closedir(folder);
-     string argvComando = argv[0];
-     if(argvComando=="ps"){
+    
+     if(size==1){
 
       printf(" %s\t%s\t%s\t%s\n","PID", "TTY","TIME", "CMD");
         for(int i=0;i<psInfo.size();i++){
@@ -260,6 +262,74 @@ void ps( char const *argv[], int size){
 
 }
 
+void uname ( char const *argv[], int size){
+	struct utsname info;
+  	int c =uname(&info);
+  	if(size==2){
+  		string param = argv[1];
+  		switch (param[1]){
+			case 's':
+	  			cout<<info.sysname<<endl;
+	  			break;
+			case 'r':
+	  			printf("%s\n",info.release);
+	  			break;
+			case 'm':
+	  			printf("%s\n",info.machine);
+	  			break;
+			case 'a':
+	  			printf("%s %s %s %s %s\n", info.sysname, info.nodename, info.release, info.version, info.machine);
+	  			break;
+		}
+  	}else if(size==1){
+  		printf("%s %s %s %s %s\n", info.sysname, info.nodename, info.release, info.version, info.machine);
+  	}else{
+  		printf("%s %s %s %s %s\n", info.sysname, info.nodename, info.release, info.version, info.machine);
+  	}
+  	
+}
+
+void kill_9 (char const *argv[], int size){
+	if(size==1){
+		 fprintf(stderr, "My_sh: sin argumentos para \"kill -9\"\n");
+	}else{
+		string PIDs  = argv[1];
+		pid_t PID= atoi(PIDs.c_str());
+		if(kill(PID,SIGKILL)!=0){
+			string error = argv[1];
+			string errorr = "MI_sh:kill -9:"+error;
+			perror((char *)(errorr).c_str());
+		}
+	}
+}
+
+void chmod (char const *argv[], int size){
+    if(size<3){
+    	fprintf(stderr, "My_sh: sin argumentos para \"chmod\"\n");
+    }else{
+    	long i = strtol(argv[1], NULL, 8);
+    	if (chmod (argv[2], i) < 0)
+    	{
+    		string error = argv[2];
+    		string ee = argv[1];
+			string errorr = "MI_sh:chmod:"+ee+":"+error;
+       		perror((char *)(errorr).c_str());
+   		}
+	}
+}
+
+void ln_s (char const *argv[], int size){
+    if(size<4){
+    	fprintf(stderr, "My_sh: sin suficientes argumentos para \"ln -s\"\n");
+    }else{
+    	if (symlink(argv[2], argv[3]) !=0){
+			string error = argv[2];
+			string errorr = "MI_sh:ln -s:"+error;
+       		perror((char *)(errorr).c_str());
+		}
+	}
+}
+
 string comandos[] = {
   "mkdir",
   "cat",
@@ -267,7 +337,10 @@ string comandos[] = {
   "rm",
   "rmdir -R",
   "ps",
-  "ps auxe"
+  "uname",
+  "kill -9",
+  "chmod",
+  "ln"
 };
 
 int size_comandos() {
@@ -282,7 +355,10 @@ void (*comandos_funciones[]) (char const *argv[], int size) = {
   	&rm,
   	&rmdir_R,
   	&ps,
-    &ps
+  	&uname,
+  	&kill_9,
+  	&chmod,
+  	&ln_s
 };
 
 
