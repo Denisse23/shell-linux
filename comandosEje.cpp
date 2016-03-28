@@ -6,12 +6,14 @@
 #include <iostream>
 #include <vector>
 #include <ctype.h>
+#include <unistd.h>
 #include <sys/wait.h>
 #include <string>
 #include <cstdlib>
-#include <dirent.h> 
+#include <dirent.h>
 #include <fstream>
-#include <sstream> 
+
+#include <sstream>
 #include <sys/utsname.h>
 #include <signal.h>
 using namespace std;
@@ -27,7 +29,7 @@ void mkdir(char const *argv[], int size){
 		string errorr = "MI_sh:mkdir:"+error;
 		perror((char *)(errorr).c_str());
 	}
-	
+
 }
 
 void cat(char const *argv[], int size){
@@ -43,9 +45,9 @@ void cat(char const *argv[], int size){
     	  	perror( (char *) errorr.c_str());
     	}else{
    			while(getline(fe,cadena))
-    		{	
+    		{
         		cout<<cadena<<endl;
-       			
+
     		}
     		fe.close();
     	}
@@ -62,7 +64,7 @@ void rmdir(char const *argv[], int size){
 		string errorr = "MI_sh:rmdir:"+error;
 		perror((char *)(errorr).c_str());
 	}
-	
+
 }
 void rm(char const *argv[], int size){
 	if (size == 1) {
@@ -73,7 +75,7 @@ void rm(char const *argv[], int size){
 		string errorr = "MI_sh:rm:"+error;
 		perror((char *)(errorr).c_str());
 	}
-	
+
 }
 
 
@@ -89,13 +91,13 @@ void eliminarDirectorio(char *directorio){
     			string dir = directorio;
     			string dirdos = entry->d_name;
                 eliminarDirectorio((char*)(dir+"/"+dirdos).c_str());
-                
+
             }
     	}else{
     		string name = directorio;
     		string namedos = entry->d_name;
     		unlink((char *)(name+"/"+namedos).c_str());
-    		
+
     	}
 
     closedir(folder);
@@ -158,7 +160,7 @@ void ps( char const *argv[], int size){
 	DIR *folder;
     struct dirent *entry;
     folder = opendir("/proc");
-	
+
 
 	vector<statInfo> psInfo;
 
@@ -175,9 +177,9 @@ void ps( char const *argv[], int size){
    				string archivoInfo ="";
     			ifstream fe((char *)("/proc/"+name+"/stat").c_str());
    				while(getline(fe,cadena))
-    			{	
+    			{
         			archivoInfo+= cadena;
-       			
+
     			}
     			fe.close();
     			vector<string> statargs = split_linea(archivoInfo);
@@ -186,9 +188,9 @@ void ps( char const *argv[], int size){
           string archivoInfo2 ="";
           ifstream fe2((char *)("/proc/"+name+"/status").c_str());
           while(getline(fe2,cadena2))
-          { 
+          {
               archivoInfo2+= cadena2;
-            
+
           }
           fe2.close();
           vector<string> statargs2 = split_linea(archivoInfo2);
@@ -217,48 +219,48 @@ void ps( char const *argv[], int size){
    							+ atoi( statargs[16].c_str() );
    				stringstream stream;
    				stream << time;
-          psInfo[psInfo.size()-1].STAT = statargs2[2]; 
-          psInfo[psInfo.size()-1].START = statargs[21]; 
-   				psInfo[psInfo.size()-1].TIME = stream.str(); 
+          psInfo[psInfo.size()-1].STAT = statargs2[2];
+          psInfo[psInfo.size()-1].START = statargs[21];
+   				psInfo[psInfo.size()-1].TIME = stream.str();
    				psInfo[psInfo.size()-1].CMD = statargs[1];
 
 
                 closedir(proceso);
             }
 
-           
+
     	}
 
     }
 
      closedir(folder);
-    
+
      if(size==1){
 
       printf(" %s\t%s\t%s\t%s\n","PID", "TTY","TIME", "CMD");
         for(int i=0;i<psInfo.size();i++){
            printf(" %s\t%s\t%s\t%s\n",(char *)psInfo[i].PID.c_str(),(char *)psInfo[i].TTY.c_str(),
                (char *)psInfo[i].TIME.c_str(), (char *)psInfo[i].CMD.c_str());
-        
+
        }
 
      }else{
         printf(" %s\t%s\t%s\t\t%s\t%s\t%s\t%s\t%s\t%s\n","UID" ,"PID","VSZ","RSS", "TTY","STAT","START", "TIME", "CMD");
         for(int i=0;i<psInfo.size();i++){
         if(psInfo[i].VSZ.size()<=7){
-            printf(" %s\t%s\t%s\t\t%s\t%s\t%s\t%s\t%s\t%s\n",(char *)psInfo[i].UID.c_str(), (char *)psInfo[i].PID.c_str(), (char *)psInfo[i].VSZ.c_str(), 
+            printf(" %s\t%s\t%s\t\t%s\t%s\t%s\t%s\t%s\t%s\n",(char *)psInfo[i].UID.c_str(), (char *)psInfo[i].PID.c_str(), (char *)psInfo[i].VSZ.c_str(),
                (char *)psInfo[i].RSS.c_str(), (char *)psInfo[i].TTY.c_str(), (char *)psInfo[i].STAT.c_str(), (char *)psInfo[i].START.c_str(),
                (char *)psInfo[i].TIME.c_str(), (char *)psInfo[i].CMD.c_str());
         }else{
-            printf(" %s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", (char *)psInfo[i].UID.c_str(),(char *)psInfo[i].PID.c_str(), (char *)psInfo[i].VSZ.c_str(), 
+            printf(" %s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", (char *)psInfo[i].UID.c_str(),(char *)psInfo[i].PID.c_str(), (char *)psInfo[i].VSZ.c_str(),
                (char *)psInfo[i].RSS.c_str(), (char *)psInfo[i].TTY.c_str(), (char *)psInfo[i].STAT.c_str(), (char *)psInfo[i].START.c_str(),
                (char *)psInfo[i].TIME.c_str(), (char *)psInfo[i].CMD.c_str());
         }
        }
-      
+
      }
 
-     
+
 
 }
 
@@ -286,7 +288,7 @@ void uname ( char const *argv[], int size){
   	}else{
   		printf("%s %s %s %s %s\n", info.sysname, info.nodename, info.release, info.version, info.machine);
   	}
-  	
+
 }
 
 void kill_9 (char const *argv[], int size){
@@ -380,6 +382,6 @@ int main(int argc, char const *argv[]) {
     	}
   	}
 
-	
+
 	return 0;
 }
