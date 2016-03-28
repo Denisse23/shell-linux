@@ -6,6 +6,7 @@
 #include <ctype.h>
 #include <sys/wait.h>
 #include <string>
+#include <unistd.h>
 #include <cstdlib>
 using namespace std;
 
@@ -57,7 +58,7 @@ vector<string> revisarlinea( char * line,vector<string> args){
   }
   vector<string> tokens;
   if(charfoundb){
-    
+
     char * token;
     token = strtok (line, charfound);
     while (token != NULL){
@@ -148,7 +149,7 @@ void ejecutar(vector<string> args)
  	int i;
 
     bool comandoencontrado = false;
-    
+
   	for (i = 0; i < size_comandos(); i++) {
     	if (args[0]== comandos[i]) {
            comandoencontrado=true;
@@ -158,8 +159,8 @@ void ejecutar(vector<string> args)
     if(!comandoencontrado){
         printf("Comando no encontrado\n");
     }
-  	
-} 
+
+}
 
 ////////////////////////////////////// Redireccionamiento o tuberias ////////////////////////////////
 
@@ -167,7 +168,7 @@ void ejecutarTubOredic(vector<string> args)
 {
    printf("NO hay nada por aqui todavia\n");
 
-} 
+}
 
 ////////////////////////////////////////////////////////// MAIN /////////////////////////////////////////////////
 
@@ -198,8 +199,8 @@ int main(int argc, char **argv){
       	}else{
          	ejecutarTubOredic(argsTubOredic);
      	}
-    	
-    	
+
+
 
   	} while (true);
 
@@ -214,9 +215,9 @@ void C_cd(vector<string> args){
   	} else {
     	if (chdir(args[1].c_str()) != 0) {
       		perror((char *)("MI_sh:cd:"+args[1]).c_str());
-    	}	
+    	}
   	}
- 	
+
 }
 
 
@@ -241,7 +242,7 @@ void C_mkdir(vector<string> args){
  	}else{
  		call_system( args);
  	}
-	
+
  }
 
  void C_rm(vector<string> args){
@@ -260,12 +261,12 @@ void C_ps(vector<string> args){
 		}else{
 			printf("Comando no encontrado\n");
 		}
-    			
+
     }else if(args.size()==1){
     	call_system( args);
   	}else{
   		printf("Comando no encontrado\n");
-  	}	
+  	}
 }
 
 void C_uname(vector<string> args){
@@ -291,12 +292,12 @@ void C_uname(vector<string> args){
 				printf("Comando no encontrado\n");
 			}
 		}
-    			
+
     }else if(args.size()==1){
     	call_system( args);
   	}else{
   		printf("Comando no encontrado\n");
-  	}	
+  	}
 }
 
 void C_kill_9(vector<string> args){
@@ -311,7 +312,7 @@ void C_kill_9(vector<string> args){
 		}else{
 			printf("Comando no encontrado\n");
 		}
-		
+
 	}
 }
 
@@ -330,6 +331,8 @@ void C_ln_s(vector<string> args){
 			call_system( args);
 		}
 	}
-	
+
 }
 
+
+/////////////Pipes////////////
