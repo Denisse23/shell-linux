@@ -330,6 +330,14 @@ void ln_s (char const *argv[], int size){
 	}
 }
 
+void gedit(char const *argv[], int size){
+  if(size==1){
+    execl("/usr/bin/gedit", "/usr/bin/gedit", "Documento nuevo", NULL);
+  }else{
+    execl("/usr/bin/gedit", "/usr/bin/gedit", argv[1], NULL);
+  }
+}
+
 string comandos[] = {
   "mkdir",
   "cat",
@@ -340,7 +348,8 @@ string comandos[] = {
   "uname",
   "kill -9",
   "chmod",
-  "ln"
+  "ln",
+  "gedit"
 };
 
 int size_comandos() {
@@ -358,7 +367,8 @@ void (*comandos_funciones[]) (char const *argv[], int size) = {
   	&uname,
   	&kill_9,
   	&chmod,
-  	&ln_s
+  	&ln_s,
+    &gedit
 };
 
 

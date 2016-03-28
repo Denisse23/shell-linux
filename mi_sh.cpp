@@ -13,6 +13,8 @@ using namespace std;
 #define directory_buf_size 255
 #define delim " \t\r\n\a"
 
+bool isBackground = false;
+
 ///////////////////// Funciones comandos/////////////////////////////////////////////////////////
 
 void C_cd(vector<string>);
@@ -27,6 +29,7 @@ void C_uname(vector<string>);
 void C_kill_9(vector<string>);
 void C_chmod(vector<string>);
 void C_ln_s(vector<string>);
+void C_gedit(vector<string>);
 //////////////////////////////////////////// LINEA////////////////////////////////////////////////////////
 
 char *read_line(){
@@ -40,7 +43,18 @@ vector<string> split_linea(char *line){
   char * token;
   token = strtok (line, delim);
   while (token != NULL){
-    tokens.push_back(token);
+  	tokens.push_back(token);
+
+  	/////////////////revisar si va estar en background o foreground
+  	if(tokens[tokens.size()-1][tokens[tokens.size()-1].length()-1]=='&'){
+  		isBackground = true;
+  	
+    	if(tokens[tokens.size()-1].length()==1)
+    		tokens.erase(tokens.begin() + (tokens.size()-1));
+    	else
+    		tokens[tokens.size()-1] = tokens[tokens.size()-1].erase(tokens[tokens.size()-1].length()-1);
+   	}
+
     token = strtok (NULL, delim);
   }
 	return tokens;
@@ -84,23 +98,38 @@ char ** getArgs(vector<string> args){
 
 /////////////////////////////// LLamadas al sistema con EXECVP -- al ejecutable: comandosEje//////////////////////////
 
+
+
 void call_system(vector<string> args){
     pid_t pid, wpid;
     int status;
     pid = fork();
 
-	if (pid==0) {
-      execvp("comandosEje", getArgs(args));
-      	//Child process
-    } else if (pid < 0) {
-      // Error forking
-      perror("fork");
-    } else {
-      // Parent process
-      do {
-          wpid = waitpid(pid, &status, WUNTRACED);
-      } while (!WIFEXITED(status) && !WIFSIGNALED(status));
-    }
+    if(isBackground){  	/////////////////se ejecutara en background
+    	if (pid==0) {
+      		execvp("comandosEje", getArgs(args));
+      		//Child process
+    	} else if (pid < 0) {
+      		// Error forking
+     	 	perror("fork");
+    	} else{
+    		printf("%s%d%s\n","[", pid,"]" );
+    	}
+    	
+    }else{ 	/////////////////se ejecutara en foreground
+		if (pid==0) {
+      		execvp("comandosEje", getArgs(args));
+      		//Child process
+    	} else if (pid < 0) {
+      		// Error forking
+     	 	perror("fork");
+    	} else {
+      		// Parent process
+      		do {
+          		wpid = waitpid(pid, &status, WUNTRACED);
+      		} while (!WIFEXITED(status) && !WIFSIGNALED(status));
+    	}
+	}
 }
 
 
@@ -117,7 +146,8 @@ string comandos[] = {
   "uname",
   "kill",
   "chmod",
-  "ln"
+  "ln",
+  "gedit"
 };
 
 int size_comandos() {
@@ -138,7 +168,8 @@ void (*comandos_funciones[]) (vector<string>) = {
   	&C_uname,
   	&C_kill_9,
   	&C_chmod,
-  	&C_ln_s
+  	&C_ln_s,
+  	&C_gedit
 };
 
 /////////////////////////////////////////// Ejecutar comando ///////////////////////////////////////
@@ -186,18 +217,22 @@ int main(int argc, char **argv){
   	vector<string> argsTubOredic;
 
   	do {
+  		isBackground =false;
   		getcwd(directory, directory_buf_size);
   		string direct = directory;
   		string path = "MI_sh>:~"+direct+"$ ";
     	printf("%s",(char *)path.c_str());
     	line =read_line();
       	args = split_linea(line);
-      	argsTubOredic = revisarlinea(line, args);
-      	if(argsTubOredic.size()==0){
-        	ejecutar(args);
-      	}else{
-         	ejecutarTubOredic(argsTubOredic);
-     	}
+      	if(args.size()>0){
+      		argsTubOredic = revisarlinea(line, args);
+      		if(argsTubOredic.size()==0){
+        		ejecutar(args);
+      		}else{
+         		ejecutarTubOredic(argsTubOredic);
+     		}
+      	}
+      	
     	
     	
 
@@ -255,7 +290,7 @@ void C_ps(vector<string> args){
 	if(args.size()==5){
 		string unir = args[1]+args[2]+args[3]+args[4];
 		if(unir.find("-a") != std::string::npos && unir.find("-u") != std::string::npos
-			&&unir.find("-x") != std::string::npos && unir.find("-e") != std::string::npos){
+			&&unir.find("-x") != std::string::npos && unir.find("-e") != std::string::npos && unir.length()==8){
 			call_system( args);
 		}else{
 			printf("Comando no encontrado\n");
@@ -331,5 +366,9 @@ void C_ln_s(vector<string> args){
 		}
 	}
 	
+}
+
+void C_gedit(vector<string> args){
+	call_system(args);
 }
 
