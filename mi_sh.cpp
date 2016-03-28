@@ -22,7 +22,7 @@ void C_cat(vector<string>);
 void C_rmdir(vector<string>);
 void C_rm(vector<string>);
 void C_rmdir_R(vector<string>);
-
+void C_ps(vector<string>);
 
 //////////////////////////////////////////// LINEA////////////////////////////////////////////////////////
 
@@ -109,7 +109,9 @@ string comandos[] = {
   "cat",
   "rmdir",
   "rm",
-  "rmdir -R"
+  "rmdir -R",
+  "ps",
+  "ps auxe"
 };
 
 int size_comandos() {
@@ -125,7 +127,9 @@ void (*comandos_funciones[]) (vector<string>) = {
   	&C_cat,
   	&C_rmdir,
   	&C_rm,
-  	&C_rmdir_R
+  	&C_rmdir_R,
+  	&C_ps,
+    &C_ps
 };
 
 /////////////////////////////////////////// Ejecutar comando ///////////////////////////////////////
@@ -237,3 +241,12 @@ void C_mkdir(vector<string> args){
  void C_rmdir_R(vector<string> args){
 	call_system( args);
  }
+void C_ps(vector<string> args){
+	if(args.size()==2){
+    args[0] = args[0]+" "+args[1];
+    args.erase(args.begin() + 1);
+    ejecutar(args);
+  }else{
+    call_system( args);
+  }
+}

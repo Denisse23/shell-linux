@@ -11,7 +11,10 @@
 #include <cstdlib>
 #include <dirent.h> 
 #include <fstream>
+#include <sstream> 
 using namespace std;
+
+#define delim " \t\r\n\a"
 
 void mkdir(char const *argv[], int size){
 	if (size == 1) {
@@ -75,7 +78,6 @@ void rm(char const *argv[], int size){
 void eliminarDirectorio(char *directorio){
 	DIR *folder;
     struct dirent *entry;
-    string nombre;
     folder = opendir(directorio);
 
     while(entry = readdir(folder))
@@ -117,12 +119,155 @@ void rmdir_R(char const *argv[], int size){
 	}
 }
 
+inline bool isInteger(const std::string & s)
+{
+   if(s.empty() || ((!isdigit(s[0])) && (s[0] != '-') && (s[0] != '+'))) return false ;
+
+   char * p ;
+   strtol(s.c_str(), &p, 10) ;
+
+   return (*p == 0) ;
+}
+
+struct statInfo {
+    string UID;
+  	string PID;
+    string VSZ;
+    string RSS;
+  	string TTY;
+    string STAT;
+    string START;
+  	string TIME;
+  	string CMD;
+};
+
+vector<string> split_linea(string line){
+  vector<string> tokens;
+  char * token;
+  token = strtok ((char*)line.c_str(), delim);
+  while (token != NULL){
+    tokens.push_back(token);
+    token = strtok (NULL, delim);
+  }
+	return tokens;
+}
+
+void ps( char const *argv[], int size){
+	DIR *folder;
+    struct dirent *entry;
+    folder = opendir("/proc");
+	
+
+	vector<statInfo> psInfo;
+
+    while(entry = readdir(folder)){
+    	if (entry->d_type == DT_DIR) {
+    		if (isInteger(entry->d_name)) {
+    			DIR *proceso;
+    			struct dirent *entry2;
+    			string name = entry->d_name;
+   				proceso = opendir((char *)("/proc/" + name).c_str());
+   				psInfo.push_back(statInfo());
+
+   				string cadena;
+   				string archivoInfo ="";
+    			ifstream fe((char *)("/proc/"+name+"/stat").c_str());
+   				while(getline(fe,cadena))
+    			{	
+        			archivoInfo+= cadena;
+       			
+    			}
+    			fe.close();
+    			vector<string> statargs = split_linea(archivoInfo);
+
+          string cadena2;
+          string archivoInfo2 ="";
+          ifstream fe2((char *)("/proc/"+name+"/status").c_str());
+          while(getline(fe2,cadena2))
+          { 
+              archivoInfo2+= cadena2;
+            
+          }
+          fe2.close();
+          vector<string> statargs2 = split_linea(archivoInfo2);
+          psInfo[psInfo.size()-1].UID = statargs2[8];
+          psInfo[psInfo.size()-1].PID = entry->d_name;
+
+          bool siVMZ = false;
+          bool siRSS = false;
+	       for(int i=0;i<statargs2.size();i++){
+            if(statargs2[i]=="kBVmSize:"){
+              psInfo[psInfo.size()-1].VSZ = statargs2[i+1];
+              siVMZ = true;
+            }
+            if(statargs2[i]=="kBVmRSS:"){
+              psInfo[psInfo.size()-1].RSS = statargs2[i+1];
+              siRSS = true;
+              break;
+            }
+         }
+   			  if(!siVMZ)
+            psInfo[psInfo.size()-1].VSZ = "0";
+          if(!siRSS)
+            psInfo[psInfo.size()-1].RSS = "0";
+   				psInfo[psInfo.size()-1].TTY = statargs[6];
+   				int time = atoi( statargs[13].c_str() )+ atoi(statargs[14].c_str()) + atoi(statargs[15].c_str())
+   							+ atoi( statargs[16].c_str() );
+   				stringstream stream;
+   				stream << time;
+          psInfo[psInfo.size()-1].STAT = statargs2[2]; 
+          psInfo[psInfo.size()-1].START = statargs[21]; 
+   				psInfo[psInfo.size()-1].TIME = stream.str(); 
+   				psInfo[psInfo.size()-1].CMD = statargs[1];
+
+
+                closedir(proceso);
+            }
+
+           
+    	}
+
+    }
+
+     closedir(folder);
+     string argvComando = argv[0];
+     if(argvComando=="ps"){
+
+      printf(" %s\t%s\t%s\t%s\n","PID", "TTY","TIME", "CMD");
+        for(int i=0;i<psInfo.size();i++){
+           printf(" %s\t%s\t%s\t%s\n",(char *)psInfo[i].PID.c_str(),(char *)psInfo[i].TTY.c_str(),
+               (char *)psInfo[i].TIME.c_str(), (char *)psInfo[i].CMD.c_str());
+        
+       }
+
+     }else{
+        printf(" %s\t%s\t%s\t\t%s\t%s\t%s\t%s\t%s\t%s\n","UID" ,"PID","VSZ","RSS", "TTY","STAT","START", "TIME", "CMD");
+        for(int i=0;i<psInfo.size();i++){
+        if(psInfo[i].VSZ.size()<=7){
+            printf(" %s\t%s\t%s\t\t%s\t%s\t%s\t%s\t%s\t%s\n",(char *)psInfo[i].UID.c_str(), (char *)psInfo[i].PID.c_str(), (char *)psInfo[i].VSZ.c_str(), 
+               (char *)psInfo[i].RSS.c_str(), (char *)psInfo[i].TTY.c_str(), (char *)psInfo[i].STAT.c_str(), (char *)psInfo[i].START.c_str(),
+               (char *)psInfo[i].TIME.c_str(), (char *)psInfo[i].CMD.c_str());
+        }else{
+            printf(" %s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", (char *)psInfo[i].UID.c_str(),(char *)psInfo[i].PID.c_str(), (char *)psInfo[i].VSZ.c_str(), 
+               (char *)psInfo[i].RSS.c_str(), (char *)psInfo[i].TTY.c_str(), (char *)psInfo[i].STAT.c_str(), (char *)psInfo[i].START.c_str(),
+               (char *)psInfo[i].TIME.c_str(), (char *)psInfo[i].CMD.c_str());
+        }
+       }
+      
+     }
+
+     
+
+}
+
 string comandos[] = {
   "mkdir",
   "cat",
   "rmdir",
   "rm",
-  "rmdir -R"
+  "rmdir -R",
+  "ps",
+  "ps auxe"
 };
 
 int size_comandos() {
@@ -135,7 +280,9 @@ void (*comandos_funciones[]) (char const *argv[], int size) = {
   	&cat,
   	&rmdir,
   	&rm,
-  	&rmdir_R
+  	&rmdir_R,
+  	&ps,
+    &ps
 };
 
 
