@@ -385,11 +385,13 @@ void redireccionamiento(char const *argv[], int size){
       }
         if(iscat || isps || isuname){
         string file = argv[2];
+        file.erase(file.begin());
         if((childpid = fork()) == -1){
             perror("fork");
         }else if(childpid == 0){
             fd[1] = dup(1);
-            fd[0] = open(file.c_str(), O_RDWR | O_TRUNC | O_CREAT, S_IRUSR | S_IWUSR);
+            FILE * f = fopen(file.c_str(), "w+");
+            fd[0] = fileno(f);
             dup2(fd[0], 1);
             
             if(iscat)
@@ -448,11 +450,13 @@ void redireccionamientomas(char const *argv[], int size){
       }
         if(iscat || isps || isuname){
         string file = argv[2];
+        file.erase(file.begin());
         if((childpid = fork()) == -1){
             perror("fork");
         }else if(childpid == 0){
             fd[1] = dup(1);
-            fd[0] = open(file.c_str(), O_RDWR | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR);
+            FILE * f = fopen(file.c_str(), "w+");
+            fd[0] = fileno(f);
             dup2(fd[0], 1);
             
             if(iscat)
