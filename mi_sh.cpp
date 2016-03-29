@@ -6,7 +6,6 @@
 #include <ctype.h>
 #include <sys/wait.h>
 #include <string>
-#include <unistd.h>
 #include <cstdlib>
 using namespace std;
 
@@ -31,6 +30,8 @@ void C_kill_9(vector<string>);
 void C_chmod(vector<string>);
 void C_ln_s(vector<string>);
 void C_gedit(vector<string>);
+void C_redireccionamiento(vector<string>);
+void C_redireccionamientomas(vector<string>);
 //////////////////////////////////////////// LINEA////////////////////////////////////////////////////////
 
 char *read_line(){
@@ -65,21 +66,23 @@ vector<string> revisarlinea( char * line,vector<string> args){
 	bool charfoundb = false;
  	const char *charfound;
 	for(int i=0;i<args.size();i++){
-    if(args[i]=="|" || args[i]==">" || args[i]=="<"){
+    if(args[i]=="|" || args[i]==">" || args[i]=="<" || args[i]==">>"){
       charfoundb=true;
       charfound = args[i].c_str();
     }
   }
   vector<string> tokens;
   if(charfoundb){
-
+    
     char * token;
     token = strtok (line, charfound);
     while (token != NULL){
       tokens.push_back(token);
       token = strtok (NULL, charfound);
     }
+    tokens.push_back(charfound);
   }
+  
   return tokens;
 
 }
@@ -180,7 +183,7 @@ void ejecutar(vector<string> args)
  	int i;
 
     bool comandoencontrado = false;
-
+    
   	for (i = 0; i < size_comandos(); i++) {
     	if (args[0]== comandos[i]) {
            comandoencontrado=true;
@@ -190,16 +193,39 @@ void ejecutar(vector<string> args)
     if(!comandoencontrado){
         printf("Comando no encontrado\n");
     }
-
-}
+  	
+} 
 
 ////////////////////////////////////// Redireccionamiento o tuberias ////////////////////////////////
 
 void ejecutarTubOredic(vector<string> args)
 {
-   printf("NO hay nada por aqui todavia\n");
+   if(args[args.size()-1]=="|"){
+      //no hay pipe
+   }else{
 
-}
+      if(args[args.size()-1]==">"){
+        vector<string> argsi;
+        argsi.push_back("redireccionamiento");
+        for (int i = 0; i < args.size()-1; i++)
+        {
+          argsi.push_back(args[i]);
+        }
+        C_redireccionamiento(argsi);
+      }else if(args[args.size()-1]==">>"){
+        vector<string> argsi;
+        argsi.push_back("redireccionamientomas");
+        for (int i = 0; i < args.size()-1; i++)
+        {
+          argsi.push_back(args[i]);
+        }
+        C_redireccionamientomas(argsi);
+      }
+      
+
+      
+   }
+} 
 
 ////////////////////////////////////////////////////////// MAIN /////////////////////////////////////////////////
 
@@ -214,6 +240,7 @@ int main(int argc, char **argv){
 
 
 	char *line;
+  string line2;
  	vector<string> args;
   	vector<string> argsTubOredic;
 
@@ -224,9 +251,10 @@ int main(int argc, char **argv){
   		string path = "MI_sh>:~"+direct+"$ ";
     	printf("%s",(char *)path.c_str());
     	line =read_line();
+      line2 = line;
       	args = split_linea(line);
       	if(args.size()>0){
-      		argsTubOredic = revisarlinea(line, args);
+      		argsTubOredic = revisarlinea((char*)line2.c_str(), args);
       		if(argsTubOredic.size()==0){
         		ejecutar(args);
       		}else{
@@ -234,7 +262,8 @@ int main(int argc, char **argv){
      		}
       	}
       	
-  
+    	
+    	
 
   	} while (true);
 
@@ -249,9 +278,9 @@ void C_cd(vector<string> args){
   	} else {
     	if (chdir(args[1].c_str()) != 0) {
       		perror((char *)("MI_sh:cd:"+args[1]).c_str());
-    	}
+    	}	
   	}
-
+ 	
 }
 
 
@@ -276,7 +305,7 @@ void C_mkdir(vector<string> args){
  	}else{
  		call_system( args);
  	}
-
+	
  }
 
  void C_rm(vector<string> args){
@@ -295,12 +324,12 @@ void C_ps(vector<string> args){
 		}else{
 			printf("Comando no encontrado\n");
 		}
-
+    			
     }else if(args.size()==1){
     	call_system( args);
   	}else{
   		printf("Comando no encontrado\n");
-  	}
+  	}	
 }
 
 void C_uname(vector<string> args){
@@ -326,12 +355,12 @@ void C_uname(vector<string> args){
 				printf("Comando no encontrado\n");
 			}
 		}
-
+    			
     }else if(args.size()==1){
     	call_system( args);
   	}else{
   		printf("Comando no encontrado\n");
-  	}
+  	}	
 }
 
 void C_kill_9(vector<string> args){
@@ -346,7 +375,7 @@ void C_kill_9(vector<string> args){
 		}else{
 			printf("Comando no encontrado\n");
 		}
-
+		
 	}
 }
 
@@ -365,14 +394,20 @@ void C_ln_s(vector<string> args){
 			call_system( args);
 		}
 	}
-
+	
 }
-
 
 void C_gedit(vector<string> args){
 	call_system(args);
 }
 
+void C_redireccionamiento(vector<string> args){
+  call_system(args);
+}
 
-/////////////Pipes////////////
+void C_redireccionamientomas(vector<string> args){
+  call_system(args);
+}
+
+
 

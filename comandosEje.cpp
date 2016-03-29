@@ -6,19 +6,20 @@
 #include <iostream>
 #include <vector>
 #include <ctype.h>
-#include <unistd.h>
 #include <sys/wait.h>
 #include <string>
 #include <cstdlib>
-#include <dirent.h>
+#include <dirent.h> 
 #include <fstream>
-
-#include <sstream>
+#include <sstream> 
 #include <sys/utsname.h>
 #include <signal.h>
+#include <sys/stat.h> 
+#include <fcntl.h>
 using namespace std;
 
 #define delim " \t\r\n\a"
+#define tok_bufsize 255
 
 void mkdir(char const *argv[], int size){
 	if (size == 1) {
@@ -29,7 +30,7 @@ void mkdir(char const *argv[], int size){
 		string errorr = "MI_sh:mkdir:"+error;
 		perror((char *)(errorr).c_str());
 	}
-
+	
 }
 
 void cat(char const *argv[], int size){
@@ -45,9 +46,9 @@ void cat(char const *argv[], int size){
     	  	perror( (char *) errorr.c_str());
     	}else{
    			while(getline(fe,cadena))
-    		{
+    		{	
         		cout<<cadena<<endl;
-
+       			
     		}
     		fe.close();
     	}
@@ -64,7 +65,7 @@ void rmdir(char const *argv[], int size){
 		string errorr = "MI_sh:rmdir:"+error;
 		perror((char *)(errorr).c_str());
 	}
-
+	
 }
 void rm(char const *argv[], int size){
 	if (size == 1) {
@@ -75,7 +76,7 @@ void rm(char const *argv[], int size){
 		string errorr = "MI_sh:rm:"+error;
 		perror((char *)(errorr).c_str());
 	}
-
+	
 }
 
 
@@ -91,13 +92,13 @@ void eliminarDirectorio(char *directorio){
     			string dir = directorio;
     			string dirdos = entry->d_name;
                 eliminarDirectorio((char*)(dir+"/"+dirdos).c_str());
-
+                
             }
     	}else{
     		string name = directorio;
     		string namedos = entry->d_name;
     		unlink((char *)(name+"/"+namedos).c_str());
-
+    		
     	}
 
     closedir(folder);
@@ -160,7 +161,7 @@ void ps( char const *argv[], int size){
 	DIR *folder;
     struct dirent *entry;
     folder = opendir("/proc");
-
+	
 
 	vector<statInfo> psInfo;
 
@@ -177,9 +178,9 @@ void ps( char const *argv[], int size){
    				string archivoInfo ="";
     			ifstream fe((char *)("/proc/"+name+"/stat").c_str());
    				while(getline(fe,cadena))
-    			{
+    			{	
         			archivoInfo+= cadena;
-
+       			
     			}
     			fe.close();
     			vector<string> statargs = split_linea(archivoInfo);
@@ -188,9 +189,9 @@ void ps( char const *argv[], int size){
           string archivoInfo2 ="";
           ifstream fe2((char *)("/proc/"+name+"/status").c_str());
           while(getline(fe2,cadena2))
-          {
+          { 
               archivoInfo2+= cadena2;
-
+            
           }
           fe2.close();
           vector<string> statargs2 = split_linea(archivoInfo2);
@@ -219,48 +220,48 @@ void ps( char const *argv[], int size){
    							+ atoi( statargs[16].c_str() );
    				stringstream stream;
    				stream << time;
-          psInfo[psInfo.size()-1].STAT = statargs2[2];
-          psInfo[psInfo.size()-1].START = statargs[21];
-   				psInfo[psInfo.size()-1].TIME = stream.str();
+          psInfo[psInfo.size()-1].STAT = statargs2[2]; 
+          psInfo[psInfo.size()-1].START = statargs[21]; 
+   				psInfo[psInfo.size()-1].TIME = stream.str(); 
    				psInfo[psInfo.size()-1].CMD = statargs[1];
 
 
                 closedir(proceso);
             }
 
-
+           
     	}
 
     }
 
      closedir(folder);
-
+    
      if(size==1){
 
       printf(" %s\t%s\t%s\t%s\n","PID", "TTY","TIME", "CMD");
         for(int i=0;i<psInfo.size();i++){
            printf(" %s\t%s\t%s\t%s\n",(char *)psInfo[i].PID.c_str(),(char *)psInfo[i].TTY.c_str(),
                (char *)psInfo[i].TIME.c_str(), (char *)psInfo[i].CMD.c_str());
-
+        
        }
 
      }else{
         printf(" %s\t%s\t%s\t\t%s\t%s\t%s\t%s\t%s\t%s\n","UID" ,"PID","VSZ","RSS", "TTY","STAT","START", "TIME", "CMD");
         for(int i=0;i<psInfo.size();i++){
         if(psInfo[i].VSZ.size()<=7){
-            printf(" %s\t%s\t%s\t\t%s\t%s\t%s\t%s\t%s\t%s\n",(char *)psInfo[i].UID.c_str(), (char *)psInfo[i].PID.c_str(), (char *)psInfo[i].VSZ.c_str(),
+            printf(" %s\t%s\t%s\t\t%s\t%s\t%s\t%s\t%s\t%s\n",(char *)psInfo[i].UID.c_str(), (char *)psInfo[i].PID.c_str(), (char *)psInfo[i].VSZ.c_str(), 
                (char *)psInfo[i].RSS.c_str(), (char *)psInfo[i].TTY.c_str(), (char *)psInfo[i].STAT.c_str(), (char *)psInfo[i].START.c_str(),
                (char *)psInfo[i].TIME.c_str(), (char *)psInfo[i].CMD.c_str());
         }else{
-            printf(" %s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", (char *)psInfo[i].UID.c_str(),(char *)psInfo[i].PID.c_str(), (char *)psInfo[i].VSZ.c_str(),
+            printf(" %s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", (char *)psInfo[i].UID.c_str(),(char *)psInfo[i].PID.c_str(), (char *)psInfo[i].VSZ.c_str(), 
                (char *)psInfo[i].RSS.c_str(), (char *)psInfo[i].TTY.c_str(), (char *)psInfo[i].STAT.c_str(), (char *)psInfo[i].START.c_str(),
                (char *)psInfo[i].TIME.c_str(), (char *)psInfo[i].CMD.c_str());
         }
        }
-
+      
      }
 
-
+     
 
 }
 
@@ -288,7 +289,7 @@ void uname ( char const *argv[], int size){
   	}else{
   		printf("%s %s %s %s %s\n", info.sysname, info.nodename, info.release, info.version, info.machine);
   	}
-
+  	
 }
 
 void kill_9 (char const *argv[], int size){
@@ -340,6 +341,133 @@ void gedit(char const *argv[], int size){
   }
 }
 
+char ** getArgs(vector<string> args){
+  char **tokens =(char**) malloc(tok_bufsize * sizeof(char*));
+  int position = 0;
+  for(int i=0; i<args.size();i++){
+    tokens[position] = (char*)args[i].c_str();
+    position++;
+  }
+  tokens[position] = NULL;
+  return tokens;
+}
+
+void redireccionamiento(char const *argv[], int size){
+  if(size<3){
+      fprintf(stderr, "My_sh: sin suficientes argumentos\n");
+    }else{
+    int     fd[2];
+    pid_t   childpid;
+    pipe(fd);
+
+    string linea = argv[1];
+    linea.erase(linea.length()-1);
+    vector <string> args = split_linea(linea);
+
+    
+    if(args.size()>2){
+      fprintf(stderr, "My_sh: muchos argumentos\n");
+    }else if(args.size()<=2 ){
+      bool iscat = false;
+      bool isps = false;
+      char *argps[] = {(char *)linea.c_str(), NULL};
+      if(linea!="ps"){
+        if(args.size()==2 && args[0]=="cat"){
+          iscat = true;
+        }
+      }else{
+        isps=true;
+        
+      }
+        if(iscat || isps){
+        string file = argv[2];
+        if((childpid = fork()) == -1){
+            perror("fork");
+        }else if(childpid == 0){
+            fd[1] = dup(1);
+            fd[0] = open(file.c_str(), O_RDWR | O_TRUNC | O_CREAT, S_IRUSR | S_IWUSR);
+            dup2(fd[0], 1);
+            
+            if(iscat)
+              execvp("comandosEje", getArgs(args));
+            else
+              execvp("comandosEje", argps);
+
+        } else{
+            close(fd[0]);
+            fflush(stdout);
+            dup2(fd[1], 1);
+            close(fd[1]);
+
+        }
+            close(fd[0]);
+            close(fd[1]);
+        }else{
+            printf("Comando no encontrado\n");
+        }
+
+    }
+  }
+}
+
+void redireccionamientomas(char const *argv[], int size){
+  if(size<3){
+      fprintf(stderr, "My_sh: sin suficientes argumentos\n");
+    }else{
+    int     fd[2];
+    pid_t   childpid;
+    pipe(fd);
+
+    string linea = argv[1];
+    linea.erase(linea.length()-1);
+    vector <string> args = split_linea(linea);
+
+    
+    if(args.size()>2){
+      fprintf(stderr, "My_sh: muchos argumentos\n");
+    }else if(args.size()<=2 ){
+      bool iscat = false;
+      bool isps = false;
+      char *argps[] = {(char *)linea.c_str(), NULL};
+      if(linea!="ps"){
+        if(args.size()==2 && args[0]=="cat"){
+          iscat = true;
+        }
+      }else{
+        isps=true;
+        
+      }
+        if(iscat || isps){
+        string file = argv[2];
+        if((childpid = fork()) == -1){
+            perror("fork");
+        }else if(childpid == 0){
+            fd[1] = dup(1);
+            fd[0] = open(file.c_str(), O_RDWR | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR);
+            dup2(fd[0], 1);
+            
+            if(iscat)
+              execvp("comandosEje", getArgs(args));
+            else
+              execvp("comandosEje", argps);
+
+        } else{
+            close(fd[0]);
+            fflush(stdout);
+            dup2(fd[1], 1);
+            close(fd[1]);
+
+        }
+            close(fd[0]);
+            close(fd[1]);
+        }else{
+            printf("Comando no encontrado\n");
+        }
+
+    }
+  }
+}
+
 string comandos[] = {
   "mkdir",
   "cat",
@@ -351,7 +479,9 @@ string comandos[] = {
   "kill -9",
   "chmod",
   "ln",
-  "gedit"
+  "gedit",
+  "redireccionamiento",
+  "redireccionamientomas"
 };
 
 int size_comandos() {
@@ -370,7 +500,9 @@ void (*comandos_funciones[]) (char const *argv[], int size) = {
   	&kill_9,
   	&chmod,
   	&ln_s,
-    &gedit
+    &gedit,
+    &redireccionamiento,
+    &redireccionamientomas
 };
 
 
@@ -382,6 +514,6 @@ int main(int argc, char const *argv[]) {
     	}
   	}
 
-
+	
 	return 0;
 }
