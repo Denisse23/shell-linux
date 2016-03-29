@@ -455,7 +455,7 @@ void redireccionamientomas(char const *argv[], int size){
             perror("fork");
         }else if(childpid == 0){
             fd[1] = dup(1);
-            FILE * f = fopen(file.c_str(), "w+");
+            FILE * f = fopen(file.c_str(), "a+");
             fd[0] = fileno(f);
             dup2(fd[0], 1);
             
