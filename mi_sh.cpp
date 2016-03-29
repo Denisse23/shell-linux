@@ -317,21 +317,36 @@ void C_mkdir(vector<string> args){
  }
 
 void C_ps(vector<string> args){
-	if(args.size()==5){
-		string unir = args[1]+args[2]+args[3]+args[4];
-		if(unir.find("-a") != std::string::npos && unir.find("-u") != std::string::npos
-			&&unir.find("-x") != std::string::npos && unir.find("-e") != std::string::npos && unir.length()==8){
-			call_system( args);
-		}else{
-			printf("Comando no encontrado\n");
-		}
-    			
-    }else if(args.size()==1){
-    	call_system( args);
-  	}else{
-  		printf("Comando no encontrado\n");
-  	}	
-}
+	if(args.size()==5 || args.size() == 2){
+    if(args.size()==2){
+      if(args[1]=="-a"){
+        call_system(args);
+      }else if(args[1]=="-u"){
+        call_system(args);
+      }else if(args[1] == "-x"){
+        call_system(args);
+      }else if(args[1] == "-e"){
+        call_system(args);
+      }else{
+        printf("Comando no encontrado\n"); 
+      }
+    }else{
+      string unir = args[1]+args[2]+args[3]+args[4];
+    if(unir.find("-a") != std::string::npos && unir.find("-u") != std::string::npos
+      &&unir.find("-x") != std::string::npos && unir.find("-e") != std::string::npos && unir.length()==8){
+      call_system( args);
+    }else{
+      printf("Comando no encontrado\n");
+    }
+          
+    }}else if(args.size()==1){
+      call_system( args);
+    }else{
+      printf("Comando no encontrado\n");
+    }  
+    }
+			
+
 
 void C_uname(vector<string> args){
 	if(args.size()==5 || args.size() ==2){
