@@ -395,9 +395,9 @@ void redireccionamiento(char const *argv[], int size){
             if(iscat)
               execvp("comandosEje", getArgs(args));
             else if(isuname)
-              execvp("comandosEje", argps);
+              execvp("comandosEje", getArgs(args));
             else
-              execvp("comandosEje", argps);
+              execvp("comandosEje", getArgs(args));
 
         } else{
             close(fd[0]);
@@ -434,16 +434,19 @@ void redireccionamientomas(char const *argv[], int size){
     }else if(args.size()<=2 ){
       bool iscat = false;
       bool isps = false;
+      bool isuname = false;
       char *argps[] = {(char *)linea.c_str(), NULL};
       if(linea!="ps"){
-        if(args.size()==2 && args[0]=="cat"){
+        if(args.size()==2 && args[0]=="uname"){
+          isuname = true;
+        }else{
           iscat = true;
         }
       }else{
         isps=true;
         
       }
-        if(iscat || isps){
+        if(iscat || isps || isuname){
         string file = argv[2];
         if((childpid = fork()) == -1){
             perror("fork");
@@ -454,8 +457,10 @@ void redireccionamientomas(char const *argv[], int size){
             
             if(iscat)
               execvp("comandosEje", getArgs(args));
+            else if (isuname)
+              execvp("comandosEje", getArgs(args));
             else
-              execvp("comandosEje", argps);
+              execvp("comandosEje", getArgs(args));
 
         } else{
             close(fd[0]);
