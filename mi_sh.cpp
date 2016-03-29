@@ -19,6 +19,7 @@ bool isBackground = false;
 ///////////////////// Funciones comandos/////////////////////////////////////////////////////////
 
 void C_cd(vector<string>);
+void C_ls(vector<string>);
 void C_exit(vector<string>);
 void C_mkdir(vector<string>);
 void C_cat(vector<string>);
@@ -51,7 +52,7 @@ vector<string> split_linea(char *line){
   	/////////////////revisar si va estar en background o foreground
   	if(tokens[tokens.size()-1][tokens[tokens.size()-1].length()-1]=='&'){
   		isBackground = true;
-  	
+
     	if(tokens[tokens.size()-1].length()==1)
     		tokens.erase(tokens.begin() + (tokens.size()-1));
     	else
@@ -74,7 +75,7 @@ vector<string> revisarlinea( char * line,vector<string> args){
   }
   vector<string> tokens;
   if(charfoundb){
-    
+
     char * token;
     token = strtok (line, charfound);
     while (token != NULL){
@@ -83,7 +84,7 @@ vector<string> revisarlinea( char * line,vector<string> args){
     }
     tokens.push_back(charfound);
   }
-  
+
   return tokens;
 
 }
@@ -120,7 +121,7 @@ void call_system(vector<string> args){
     	} else{
     		printf("%s%d%s\n","[", pid,"]" );
     	}
-    	
+
     }else{ 	/////////////////se ejecutara en foreground
 		if (pid==0) {
       		execvp("comandosEje", getArgs(args));
@@ -141,6 +142,7 @@ void call_system(vector<string> args){
 ////////////////////////////////////////////////lista de comandos///////////////////////////
 string comandos[] = {
   "cd",
+  "ls",
   "exit",
   "mkdir",
   "cat",
@@ -184,7 +186,7 @@ void ejecutar(vector<string> args)
  	int i;
 
     bool comandoencontrado = false;
-    
+
   	for (i = 0; i < size_comandos(); i++) {
     	if (args[0]== comandos[i]) {
            comandoencontrado=true;
@@ -194,8 +196,8 @@ void ejecutar(vector<string> args)
     if(!comandoencontrado){
         printf("Comando no encontrado\n");
     }
-  	
-} 
+
+}
 
 ////////////////////////////////////// Redireccionamiento o tuberias ////////////////////////////////
 
@@ -222,11 +224,11 @@ void ejecutarTubOredic(vector<string> args)
         }
         C_redireccionamientomas(argsi);
       }
-      
 
-      
+
+
    }
-} 
+}
 
 ////////////////////////////////////////////////////////// MAIN /////////////////////////////////////////////////
 
@@ -262,9 +264,9 @@ int main(int argc, char **argv){
          		ejecutarTubOredic(argsTubOredic);
      		}
       	}
-      	
-    	
-    	
+
+
+
 
   	} while (true);
 
@@ -279,9 +281,28 @@ void C_cd(vector<string> args){
   	} else {
     	if (chdir(args[1].c_str()) != 0) {
       		perror((char *)("MI_sh:cd:"+args[1]).c_str());
-    	}	
+    	}
   	}
- 	
+
+}
+
+void C_ls(vector<string> args){
+    if (args.size()==1 )
+    {
+        call_system(args);
+    }else{
+        if(args[1]=="-L"){
+          call_system(args);
+      }else if(args[1]=="-m"){
+          call_system(args);
+      }else if(args[1] == "-n"){
+          call_system(args);
+      }else if(args[1] == "-o"){
+          call_system(args);
+        }else{
+          printf("Comando no encontrado.\n");
+        }
+    }
 }
 
 
@@ -306,7 +327,7 @@ void C_mkdir(vector<string> args){
  	}else{
  		call_system( args);
  	}
-	
+
  }
 
  void C_rm(vector<string> args){
@@ -328,7 +349,7 @@ void C_ps(vector<string> args){
       }else if(args[1] == "-e"){
         call_system(args);
       }else{
-        printf("Comando no encontrado\n"); 
+        printf("Comando no encontrado\n");
       }
     }else{
       string unir = args[1]+args[2]+args[3]+args[4];
@@ -338,14 +359,14 @@ void C_ps(vector<string> args){
     }else{
       printf("Comando no encontrado\n");
     }
-          
+
     }}else if(args.size()==1){
       call_system( args);
     }else{
       printf("Comando no encontrado\n");
-    }  
     }
-			
+    }
+
 
 
 void C_uname(vector<string> args){
@@ -371,12 +392,12 @@ void C_uname(vector<string> args){
 				printf("Comando no encontrado\n");
 			}
 		}
-    			
+
     }else if(args.size()==1){
     	call_system( args);
   	}else{
   		printf("Comando no encontrado\n");
-  	}	
+  	}
 }
 
 void C_kill_9(vector<string> args){
@@ -391,7 +412,7 @@ void C_kill_9(vector<string> args){
 		}else{
 			printf("Comando no encontrado\n");
 		}
-		
+
 	}
 }
 
@@ -410,7 +431,7 @@ void C_ln_s(vector<string> args){
 			call_system( args);
 		}
 	}
-	
+
 }
 
 void C_gedit(vector<string> args){
@@ -424,6 +445,3 @@ void C_redireccionamiento(vector<string> args){
 void C_redireccionamientomas(vector<string> args){
   call_system(args);
 }
-
-
-
